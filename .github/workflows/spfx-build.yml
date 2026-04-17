@@ -8,27 +8,28 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
 
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Setup Node.js v18
+      - name: Setup Node.js v14 (SPFx compatible)
         uses: actions/setup-node@v4
         with:
-          node-version: '18.20.4'
+          node-version: '14.21.3'
 
-      - name: Setup Python 2 for node-gyp
+      - name: Install Python 2 (needed for node-sass/gyp)
         run: |
+          sudo apt-get update
           sudo apt-get install -y python2
           npm config set python python2
 
       - name: Install Dependencies
-        run: npm install --legacy-peer-deps
+        run: npm install
 
       - name: Install PnPjs
-        run: npm install @pnp/sp @pnp/graph @pnp/logging --legacy-peer-deps
+        run: npm install @pnp/sp @pnp/graph @pnp/logging
 
       - name: Build SPFx Web Part
         run: npx gulp bundle --ship
