@@ -1,0 +1,18 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/spfx-build/config.2.0.schema.json",
+  "version": "2.0",
+  "bundles": {
+    "weekly-shift-web-part": {
+      "components": [
+        {
+          "entrypoint": "./lib/webparts/weeklyShift/WeeklyShiftWebPart.js",
+          "manifest": "./src/webparts/weeklyShift/WeeklyShiftWebPart.manifest.json"
+        }
+      ]
+    }
+  },
+  "externals": {},
+  "localizedResources": {
+    "WeeklyShiftWebPartStrings": "lib/webparts/weeklyShift/loc/{locale}.js"
+  }
+}

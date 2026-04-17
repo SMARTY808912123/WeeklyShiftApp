@@ -1,0 +1,44 @@
+name: Build SPFx Package for Weekly Shift
+
+on:
+  push:
+    branches:
+      - main
+      - master
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js v18
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18.20.4'
+
+      - name: Cache node modules
+        uses: actions/cache@v3
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package.json') }}
+
+      - name: Install Dependencies
+        run: |
+          npm i --force
+          npm install @pnp/sp @pnp/graph @pnp/logging --force
+
+      - name: Build SPFx Web Part
+        run: npx gulp bundle --ship
+
+      - name: Package SPFx Solution
+        run: npx gulp package-solution --ship
+
+      - name: Upload .sppkg Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: WeeklyShiftApp-Package
+          path: sharepoint/solution/*.sppkg

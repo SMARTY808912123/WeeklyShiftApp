@@ -1,0 +1,16 @@
+{
+  "@microsoft/generator-sharepoint": {
+    "version": "1.11.0",
+    "libraryName": "weekly-shift",
+    "libraryId": "fd71fa9d-3c87-48be-b892-95c3e870c5c3",
+    "environment": "spo",
+    "packageManager": "npm",
+    "solutionName": "WeeklyShift",
+    "skipFeatureDeployment": true,
+    "componentType": "webpart",
+    "framework": "react",
+    "componentName": "WeeklyShift",
+    "isCreatingSolution": true,
+    "isDomainIsolated": "false"
+  }
+}
