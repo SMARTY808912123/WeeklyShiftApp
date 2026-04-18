@@ -10,37 +10,28 @@ jobs:
   build:
     runs-on: ubuntu-latest
 
-    env:
-      npm_config_python: python3
-      PYTHON: python3
-      npm_config_build_from_source: false
+    # Use the official Microsoft365 PnP Docker image for SPFx 1.11.0
+    container:
+      image: m365pnp/spfx:1.11.0
 
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Setup Node.js v14
-        uses: actions/setup-node@v4
-        with:
-          node-version: '14.21.3'
+      - name: Fix git folder permissions for Docker
+        run: git config --global --add safe.directory '*'
 
-      - name: Setup Python 3 for node-gyp
-        run: |
-          python3 -V
-          node --version
-          npm config set python python3
+      - name: Install Project Dependencies
+        run: npm install
 
-      - name: Install Dependencies
-        run: npm install --legacy-peer-deps
+      - name: Install PnPjs Libraries
+        run: npm install @pnp/sp @pnp/graph @pnp/logging
 
-      - name: Install PnPjs
-        run: npm install @pnp/sp @pnp/graph @pnp/logging --legacy-peer-deps
-
-      - name: Build SPFx Web Part
-        run: npx gulp bundle --ship
+      - name: Bundle SPFx Web Part
+        run: gulp bundle --ship
 
       - name: Package SPFx Solution
-        run: npx gulp package-solution --ship
+        run: gulp package-solution --ship
 
       - name: Upload .sppkg Artifact
         uses: actions/upload-artifact@v4
