@@ -4,47 +4,28 @@ on:
   push:
     branches:
       - main
+    branches: [ main ]
   workflow_dispatch:
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
-    # Use the official Microsoft365 PnP Docker image for SPFx 1.11.0
-    container:
-      image: m365pnp/spfx:1.11.0
-
     steps:
       - name: Checkout Code
-        run: git clone https://github.com/${{ github.repository }} .
+        uses: actions/checkout@v4
 
-      - name: Fix git folder permissions for Docker
-        run: git config --global --add safe.directory '*'
-
-      - name: Install Project Dependencies
-        run: npm install
-
-      - name: Install PnPjs Libraries
-        run: npm install @pnp/sp @pnp/graph @pnp/logging
-
-      - name: Bundle SPFx Web Part
-        continue-on-error: true
-        run: gulp bundle --ship > build.log 2>&1
-
-      - name: Package SPFx Solution
-        continue-on-error: true
-        run: gulp package-solution --ship >> build.log 2>&1
-
-      - name: Upload Build Logs
-        uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: Build-Logs
-          path: build.log
+      - name: Build SPFx App in Docker
+        run: |
+          # Use the official Microsoft PnP Docker container to bypass node-sass/node-gyp issues
+          docker run --rm \
+            -v ${{ github.workspace }}:/usr/app/spfx \
+            -w /usr/app/spfx \
+            m365pnp/spfx:1.11.0 \
+            sh -c "npm install && gulp bundle --ship && gulp package-solution --ship"
 
       - name: Upload .sppkg Artifact
         uses: actions/upload-artifact@v4
-        if: always()
         with:
           name: WeeklyShiftApp-Package
           path: sharepoint/solution/*.sppkg
