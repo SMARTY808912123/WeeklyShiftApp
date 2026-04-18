@@ -14,19 +14,21 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Setup Node.js v18
+      - name: Setup Node.js v16
         uses: actions/setup-node@v4
         with:
-          node-version: '18.20.4'
+          node-version: '16.20.2'
 
-      - name: Install Dependencies (skip native scripts)
-        run: npm install --ignore-scripts
-
-      - name: Rebuild only safe native modules
-        run: npm rebuild --ignore-scripts || true
+      - name: Install Dependencies
+        run: npm install --legacy-peer-deps
 
       - name: Install PnPjs
-        run: npm install @pnp/sp @pnp/graph @pnp/logging --ignore-scripts
+        run: npm install @pnp/sp @pnp/graph @pnp/logging --legacy-peer-deps
+
+      - name: Patch node-sass to sass
+        run: |
+          npm install sass --legacy-peer-deps
+          npm uninstall node-sass --legacy-peer-deps || true
 
       - name: Build SPFx Web Part
         run: npx gulp bundle --ship
