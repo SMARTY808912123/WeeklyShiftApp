@@ -16,12 +16,12 @@ jobs:
 
       - name: Build SPFx App in Docker
         run: |
-          # Use the official Microsoft PnP Docker container to bypass node-sass/node-gyp issues
           docker run --rm \
+            -u root \
             -v ${{ github.workspace }}:/usr/app/spfx \
             -w /usr/app/spfx \
             m365pnp/spfx:1.11.0 \
-            sh -c "npm install && gulp bundle --ship && gulp package-solution --ship"
+            sh -c "npm install && gulp bundle --ship && gulp package-solution --ship && chown -R 1001:1001 sharepoint temp"
 
       - name: Upload .sppkg Artifact
         uses: actions/upload-artifact@v4
