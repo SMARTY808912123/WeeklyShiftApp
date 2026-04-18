@@ -10,7 +10,6 @@ import { BaseClientSideWebPart } from '@microsoft/sp-webpart-base';
 import * as strings from 'WeeklyShiftWebPartStrings';
 import WeeklyShift from './components/WeeklyShift';
 import { IWeeklyShiftProps } from './components/IWeeklyShiftProps';
-import { getSP } from '../../pnpjsConfig';
 
 export interface IWeeklyShiftWebPartProps {
   description: string;
@@ -32,7 +31,6 @@ export default class WeeklyShiftWebPart extends BaseClientSideWebPart<IWeeklyShi
 
   public async onInit(): Promise<void> {
     await super.onInit();
-    getSP(this.context);
   }
 
   protected onDispose(): void {

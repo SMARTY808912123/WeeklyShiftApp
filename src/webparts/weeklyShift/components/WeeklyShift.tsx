@@ -2,14 +2,12 @@ import * as React from 'react';
 import { useState, useEffect } from 'react';
 import styles from './WeeklyShift.module.scss';
 import { IWeeklyShiftProps } from './IWeeklyShiftProps';
-import { getSP } from '../../../pnpjsConfig';
-import { SPFI } from '@pnp/sp';
 import { ShiftForm } from './ShiftForm';
 import { AdminDashboard } from './AdminDashboard';
-import { Pivot, PivotItem, Spinner } from '@fluentui/react';
+import { Pivot, PivotItem, Spinner } from 'office-ui-fabric-react';
+import { SPHttpClient, SPHttpClientResponse } from '@microsoft/sp-http';
 
 export default function WeeklyShift(props: IWeeklyShiftProps) {
-  const sp: SPFI = getSP();
   const [role, setRole] = useState<'Staff' | 'ROIT' | 'Admin' | null>(null);
 
   useEffect(() => {
@@ -18,14 +16,12 @@ export default function WeeklyShift(props: IWeeklyShiftProps) {
 
   const checkUserRole = async () => {
     try {
-      // Logic for RBAC. In a real environment, you'd check sp.web.currentUser.groups()
-      // For this implementation, we use a simple claim or hardcoded groups.
-      // E.g., if user is in "Shift Admins" -> 'Admin'
-      // E.g., if user is in "ROIT" -> 'ROIT'
-      // Default: 'Staff'
+      // Check current user groups via spHttpClient
+      const url = `${props.context.pageContext.web.absoluteUrl}/_api/web/currentuser/groups?$select=Title`;
+      const response: SPHttpClientResponse = await props.context.spHttpClient.get(url, SPHttpClient.configurations.v1);
+      const data = await response.json();
       
-      const groups = await sp.web.currentUser.groups();
-      const groupNames = groups.map(g => g.Title);
+      const groupNames = data.value.map((g: any) => g.Title);
       
       if (groupNames.indexOf('Shift Admins') > -1) {
         setRole('Admin');
@@ -36,7 +32,6 @@ export default function WeeklyShift(props: IWeeklyShiftProps) {
       }
     } catch (err) {
       console.error(err);
-      // Fallback
       setRole('Staff');
     }
   };

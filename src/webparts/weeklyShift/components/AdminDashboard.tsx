@@ -1,12 +1,10 @@
 import * as React from 'react';
 import { useState, useEffect } from 'react';
-import { getSP } from '../../../pnpjsConfig';
 import { IWeeklyShiftProps } from './IWeeklyShiftProps';
-import { SPFI } from '@pnp/sp';
-import { DetailsList, DetailsListLayoutMode, IColumn, MessageBar, MessageBarType } from '@fluentui/react';
+import { DetailsList, DetailsListLayoutMode, IColumn, MessageBar, MessageBarType } from 'office-ui-fabric-react';
+import { SPHttpClient, SPHttpClientResponse } from '@microsoft/sp-http';
 
 export const AdminDashboard: React.FC<IWeeklyShiftProps> = (props) => {
-  const sp: SPFI = getSP();
   const [items, setItems] = useState<any[]>([]);
   const [error, setError] = useState<string | null>(null);
 
@@ -16,15 +14,23 @@ export const AdminDashboard: React.FC<IWeeklyShiftProps> = (props) => {
 
   const fetchShifts = async () => {
     try {
-      // Get today's date in ISO format start of day
       const today = new Date();
       today.setHours(0, 0, 0, 0);
       
-      // Fetch all shifts
-      const allShifts = await sp.web.lists.getByTitle("ITStaffShifts").items();
+      const listName = "ITStaffShifts";
+      const siteUrl = props.context.pageContext.web.absoluteUrl;
+      const apiUrl = `${siteUrl}/_api/web/lists/getByTitle('${listName}')/items?$top=5000`;
       
-      // Filter for active shifts (today's date falls between From_Date and To_Date)
-      const activeShifts = allShifts.filter(shift => {
+      const response: SPHttpClientResponse = await props.context.spHttpClient.get(apiUrl, SPHttpClient.configurations.v1);
+      
+      if (!response.ok) {
+        throw new Error(response.statusText);
+      }
+      
+      const data = await response.json();
+      const allShifts = data.value;
+      
+      const activeShifts = allShifts.filter((shift: any) => {
         const fromD = new Date(shift.From_Date);
         const toD = new Date(shift.To_Date);
         return today >= fromD && today <= toD;

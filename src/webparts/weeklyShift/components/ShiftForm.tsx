@@ -1,13 +1,10 @@
 import * as React from 'react';
 import { useState } from 'react';
-import { getSP } from '../../../pnpjsConfig';
 import { IWeeklyShiftProps } from './IWeeklyShiftProps';
-import { SPFI } from '@pnp/sp';
-import { PrimaryButton, TextField, Dropdown, IDropdownOption, DatePicker, Stack, MessageBar, MessageBarType } from '@fluentui/react';
+import { PrimaryButton, TextField, Dropdown, IDropdownOption, DatePicker, Stack, MessageBar, MessageBarType } from 'office-ui-fabric-react';
+import { SPHttpClient, ISPHttpClientOptions } from '@microsoft/sp-http';
 
 export const ShiftForm: React.FC<IWeeklyShiftProps> = (props) => {
-  const sp: SPFI = getSP();
-  
   const [empId, setEmpId] = useState('');
   const [empName, setEmpName] = useState(props.context.pageContext.user.displayName);
   const [email, setEmail] = useState(props.context.pageContext.user.email);
@@ -37,22 +34,43 @@ export const ShiftForm: React.FC<IWeeklyShiftProps> = (props) => {
         return;
       }
 
-      await sp.web.lists.getByTitle("ITStaffShifts").items.add({
-        Title: empId,
-        EmpName: empName,
-        Email: email,
-        Zone: zone,
-        Region: region,
-        Department: department,
-        Designation: designation,
-        Mobile: mobile,
-        From_Date: fromDate.toISOString(),
-        To_Date: toDate.toISOString(),
-        Shift_Type: shiftType
+      const listName = "ITStaffShifts";
+      const siteUrl = props.context.pageContext.web.absoluteUrl;
+      const apiUrl = `${siteUrl}/_api/web/lists/getByTitle('${listName}')/items`;
+
+      const requestBody = JSON.stringify({
+        '__metadata': { 'type': `SP.Data.${listName}ListItem` },
+        'Title': empId,
+        'EmpName': empName,
+        'Email': email,
+        'Zone': zone,
+        'Region': region,
+        'Department': department,
+        'Designation': designation,
+        'Mobile': mobile,
+        'From_Date': fromDate.toISOString(),
+        'To_Date': toDate.toISOString(),
+        'Shift_Type': shiftType
       });
-      setMessage({ type: MessageBarType.success, text: 'Shift submitted successfully!' });
+
+      const spOpts: ISPHttpClientOptions = {
+        headers: {
+          'Accept': 'application/json;odata=nometadata',
+          'Content-type': 'application/json;odata=verbose',
+          'odata-version': ''
+        },
+        body: requestBody
+      };
+
+      const response = await props.context.spHttpClient.post(apiUrl, SPHttpClient.configurations.v1, spOpts);
+
+      if (response.ok) {
+        setMessage({ type: MessageBarType.success, text: 'Shift submitted successfully!' });
+      } else {
+        setMessage({ type: MessageBarType.error, text: `Error: ${response.statusText}` });
+      }
     } catch (err) {
-      setMessage({ type: MessageBarType.error, text: 'Error submitting shift. Check if ITStaffShifts list exists.' });
+      setMessage({ type: MessageBarType.error, text: 'Network Error submitting shift.' });
       console.error(err);
     }
   };
