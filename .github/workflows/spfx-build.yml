@@ -16,7 +16,7 @@ jobs:
 
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v4
+        run: git clone https://github.com/${{ github.repository }} .
 
       - name: Fix git folder permissions for Docker
         run: git config --global --add safe.directory '*'
