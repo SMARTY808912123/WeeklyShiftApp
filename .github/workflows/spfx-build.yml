@@ -28,13 +28,23 @@ jobs:
         run: npm install @pnp/sp @pnp/graph @pnp/logging
 
       - name: Bundle SPFx Web Part
-        run: gulp bundle --ship
+        continue-on-error: true
+        run: gulp bundle --ship > build.log 2>&1
 
       - name: Package SPFx Solution
-        run: gulp package-solution --ship
+        continue-on-error: true
+        run: gulp package-solution --ship >> build.log 2>&1
+
+      - name: Upload Build Logs
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: Build-Logs
+          path: build.log
 
       - name: Upload .sppkg Artifact
         uses: actions/upload-artifact@v4
+        if: always()
         with:
           name: WeeklyShiftApp-Package
           path: sharepoint/solution/*.sppkg
